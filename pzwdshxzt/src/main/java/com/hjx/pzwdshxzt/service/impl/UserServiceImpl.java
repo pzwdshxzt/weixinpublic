@@ -78,4 +78,9 @@ public class UserServiceImpl implements UserService {
         userMapper.updateLocal(user);
     }
 
+    @Override
+    public void updateUrl(User user) {
+        userMapper.updateUrl(user);
+    }
+
 }

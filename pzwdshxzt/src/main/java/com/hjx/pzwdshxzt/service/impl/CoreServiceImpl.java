@@ -1,10 +1,12 @@
 package com.hjx.pzwdshxzt.service.impl;
 
 import com.hjx.pzwdshxzt.controller.CoreController;
-import com.hjx.pzwdshxzt.model.Result;
 import com.hjx.pzwdshxzt.model.UnSubscribe;
 import com.hjx.pzwdshxzt.model.User;
 import com.hjx.pzwdshxzt.model.message.response.TextMessage;
+import com.hjx.pzwdshxzt.model.price.PriceResult;
+import com.hjx.pzwdshxzt.model.price.Shop;
+import com.hjx.pzwdshxzt.model.price.Single;
 import com.hjx.pzwdshxzt.model.weather.*;
 import com.hjx.pzwdshxzt.service.*;
 import com.hjx.pzwdshxzt.util.MessageUtil;
@@ -22,8 +24,6 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -164,6 +164,9 @@ public class CoreServiceImpl implements CoreService {
                 if (isRegs(content)) {
                     return regexGen(textMessage, content);
                 }
+                if (isUrls(content)) {
+                    return getShoppingPrice(textMessage, content, user);
+                }
 
                 /**
                  *  如果用户发送表情，则回复同样表情。
@@ -171,6 +174,7 @@ public class CoreServiceImpl implements CoreService {
                 if (isQqFace(content)) {
                     respContent = content;
                 } else {
+                    String url = user.getUrl();
                     switch (content) {
                         case "1":
                             /**
@@ -193,142 +197,88 @@ public class CoreServiceImpl implements CoreService {
                                 respContent = "你还没设置下班时间，发送 **:**:** 即可设置 ";
                             }
                             break;
-                        case "3": {
-                            if (user.getLocal() != null) {
-                                City city = new City();
-                                city.setCity(user.getAddress());
-                                Result result = weatherService.queryWeather(city);
-                                if (SUCCESSCODE.equals(result.getStatus())) {
-                                    CityDo cityDo = result.getResult();
-                                    if (cityDo != null) {
-                                        StringBuffer buffer = new StringBuffer();
-                                        buffer.append("当前日期:" + cityDo.getDate()).append("\n");
-                                        buffer.append("当前城市:" + cityDo.getCity()).append("\n");
-                                        buffer.append("当前天气:" + cityDo.getWeather()).append("\n");
-                                        buffer.append("修改城市直接发送当前的地理位置即可");
-                                        respContent = String.valueOf(buffer);
-                                    }
-                                } else {
-                                    respContent = result.getMsg() + "\n修改城市直接发送当前的地理位置即可";
-                                }
-                            } else {
-                                respContent = "你还没设置当前位置，点开右下角+号,发送地理位置即可设置";
-                            }
-                            break;
 
-                        }
-                        case "4":
-                            if (user.getLocal() != null) {
-                                City city = new City();
-                                city.setCity(user.getAddress());
-                                Result result = weatherService.queryWeather(city);
-                                if (SUCCESSCODE.equals(result.getStatus())) {
-                                    CityDo cityDo = result.getResult();
-                                    if (cityDo != null) {
-                                        StringBuffer buffer = new StringBuffer();
-                                        buffer.append("当前日期:" + cityDo.getDate()).append("\n");
-                                        buffer.append("当前城市:" + cityDo.getCity()).append("\n");
-                                        buffer.append("当前天气:" + cityDo.getWeather()).append("\n");
-                                        buffer.append("当前温度:" + cityDo.getTemp() + " " + cityDo.getTemplow() + "-" + cityDo.getTemplow()).append("\n");
-                                        buffer.append("当前湿度:" + cityDo.getHumidity()).append("\n");
-                                        buffer.append("当前气压:" + cityDo.getPressure()).append("\n");
-                                        buffer.append("当前风速:" + cityDo.getWindspeed()).append("\n");
-                                        buffer.append("当前风向:" + cityDo.getWinddirect()).append("\n");
-                                        buffer.append("风力大小:" + cityDo.getWindpower()).append("\n");
-                                        buffer.append("PM2.5:" + cityDo.getAqi().getPm2_5()).append("\n");
-                                        buffer.append("修改城市直接发送当前的地理位置即可");
-                                        respContent = String.valueOf(buffer);
-                                    }
-                                } else {
-                                    respContent = result.getMsg() + "\n修改城市直接发送当前的地理位置即可";
-                                }
-                            } else {
-                                respContent = "你还没设置当前位置，点开右下角+号,发送地理位置即可设置";
-                            }
-                            break;
-                        case "5":
-                            if (user.getLocal() != null) {
-                                City city = new City();
-                                city.setCity(user.getAddress());
-                                Result result = weatherService.queryWeather(city);
-                                if (SUCCESSCODE.equals(result.getStatus())) {
-                                    CityDo cityDo = result.getResult();
-                                    Set<Daily> daily = cityDo.getDaily();
-                                    List<Daily> dailies = new ArrayList<>(daily);
-                                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                                    dailies.sort((a1, a2) -> {
-                                        LocalDate p1 = LocalDate.parse(a1.getDate(), formatter);
-                                        LocalDate p2 = LocalDate.parse(a2.getDate(), formatter);
-                                        return p1.compareTo(p2);
-                                    });
-                                    if (cityDo != null) {
-                                        StringBuffer buffer = new StringBuffer();
-                                        buffer.append("当前城市:" + cityDo.getCity()).append("\n");
-                                        buffer.append("天气预测如下:").append("\n");
-                                        dailies.forEach((Daily d) -> {
-                                            buffer.append("日期:" + "\n" + d.getDate() + " " + d.getWeek() + "\n日升时间:" + d.getSunrise() + "\n日落时间:" + d.getSunset()).append("\n");
-                                            Weather day = d.getDay();
-                                            buffer.append("白天天气:" + day.getWeather() + "\n" +
-                                                    "\t最高气温:" + day.getTemphigh() + "\n\t风向:" + day.getWinddirect() + "\n\t风力:" + day.getWindpower()).append("\n");
-                                            Weather night = d.getNight();
-                                            buffer.append("夜晚天气:" + night.getWeather() + "\n" +
-                                                    "\t最低气温:" + night.getTemplow() + "\n\t风向:" + night.getWinddirect() + "\n\t风力:" + night.getWindpower()).append("\n");
-                                            buffer.append("------------------\n");
-
-                                        });
-                                        buffer.append("修改城市直接发送当前的地理位置即可");
-                                        respContent = String.valueOf(buffer);
-                                    }
-                                } else {
-                                    respContent = result.getMsg() + "\n修改城市直接发送当前的地理位置即可";
-                                }
-                            } else {
-                                respContent = "你还没设置当前位置，点开右下角+号,发送地理位置即可设置";
-                            }
-                            break;
-                        case "6":
-                            if (user.getLocal() != null) {
-                                City city = new City();
-                                city.setCity(user.getAddress());
-                                Result result = weatherService.queryWeather(city);
-                                if (SUCCESSCODE.equals(result.getStatus())) {
-                                    CityDo cityDo = result.getResult();
-                                    if (cityDo != null) {
-                                        Set<DetailInfo> index = cityDo.getIndex();
-                                        StringBuffer buffer = new StringBuffer();
-                                        buffer.append("当前城市:" + cityDo.getCity()).append("\n");
-                                        buffer.append("今天建议如下:").append("\n");
-                                        index.forEach((DetailInfo d) -> {
-                                            buffer.append(d.getIname() + ":" + d.getIvalue() + "\n建议:" + d.getDetail()).append("\n");
-                                            buffer.append("---------------\n");
-                                        });
-                                        buffer.append("修改城市直接发送当前的地理位置即可");
-                                        respContent = String.valueOf(buffer);
-                                    }
-                                } else {
-                                    respContent = result.getMsg() + "\n修改城市直接发送当前的地理位置即可";
-                                }
-                            } else {
-                                respContent = "你还没设置当前位置，点开右下角+号,发送地理位置即可设置";
-                            }
-                            break;
-                        case "7":
+                        case "3":
                             respContent = "发送 \nreg|表达式 \n例如: \nreg|node \n即可";
                             break;
-                        case "8":
+                        case "4":
                             respContent = "发送 \nregs|字符串|字符串|字符串 \n例如: \nregs|node|nosd|nodes \n即可（至少两个）";
+                            break;
+                        case "5":
+
+                            if (url != null && !"".equals(url)) {
+                                PriceResult priceResult = queryService.getShoppingPrice(url);
+                                if (priceResult == null) {
+                                    respContent = "查询失败，请稍后再试!";
+                                } else {
+                                    if (priceResult.getOk() == 1) {
+                                        Single single = priceResult.getSingle();
+                                        StringBuffer buffer = new StringBuffer();
+                                        buffer.append(single.getZk_scname()).append("\n");
+                                        buffer.append(single.getTitle()).append("\n");
+                                        buffer.append("商品历史最低价为:" + single.getLowerPrice()).append("\n");
+                                        buffer.append("当前价格为:" + single.getSpmoney()).append("\n");
+                                        String list = single.getJiagequshi();
+                                        list = list.replaceAll("\\[Date.UTC\\(", "○");
+                                        list = list.replaceAll("\\),", "\t￥");
+                                        String[] split = list.split("\\],");
+                                        for (String s : split) {
+                                            buffer.append(s.replaceAll(",", ".")).append("\n");
+                                        }
+                                        respContent = buffer.toString();
+
+                                    } else {
+                                        respContent = "查询暂无信息";
+                                    }
+                                }
+                            } else {
+                                respContent = "您还未设置商品URL \n打开天猫淘宝京东等分享复制链接 \n" +
+                                        "发送链接查询商品历史价格\n 格式如下: \nurl|淘宝链接URL";
+                            }
+
+                            break;
+                        case "6":
+                            if (url != null && !"".equals(url)) {
+                                PriceResult priceResult = queryService.getShoppingPrice(url);
+                                if (priceResult == null) {
+                                    respContent = "查询失败，请稍后再试!";
+                                } else {
+                                    if (priceResult.getOk() == 1) {
+                                        Single single = priceResult.getSingle();
+                                        StringBuffer buffer = new StringBuffer();
+                                        List<Shop> bj = single.getBj();
+                                        if (bj !=null && bj.size()>0){
+                                            for (Shop shop : bj) {
+                                                buffer.append(shop.getSitename()).append("\n");
+                                                buffer.append(shop.getTitle()).append("\n");
+                                                buffer.append("Price: ￥"+shop.getPrice()).append("\n");
+                                                buffer.append("Url:"+shop.getUrl()).append("\n");
+                                            }
+                                        }else{
+                                            buffer.append("暂无其他商家信息.").append("\n");
+                                        }
+
+                                        respContent = buffer.toString();
+
+                                    } else {
+                                        respContent = "查询暂无信息";
+                                    }
+                                }
+                            } else {
+                                respContent = "您还未设置商品URL \n打开天猫淘宝京东等分享复制链接 \n" +
+                                        "发送链接查询商品历史价格\n 格式如下: \nurl|淘宝链接URL";
+                            }
+
                             break;
                         default: {
                             StringBuffer buffer = new StringBuffer();
                             buffer.append("您好，很高兴为您服务：").append("\n");
                             buffer.append("1.查询深圳通余额").append("\n");
                             buffer.append("2.下班倒计时").append("\n");
-                            buffer.append("3.查询天气简版").append("\n");
-                            buffer.append("4.查询天气详情").append("\n");
-                            buffer.append("5.查询天气预测").append("\n");
-                            buffer.append("6.查询今日建议").append("\n");
-                            buffer.append("7.通过正则表达式生成符合的字符串").append("\n");
-                            buffer.append("8.通过字符串数组反向生成符合的正则表达式").append("\n");
+                            buffer.append("3.通过正则表达式生成符合的字符串").append("\n");
+                            buffer.append("4.通过字符串数组反向生成符合的正则表达式").append("\n");
+                            buffer.append("5.查询商品历史价格").append("\n");
+                            buffer.append("6.其他商家价格").append("\n");
                             buffer.append("或者您可以尝试发送表情").append("\n");
                             respContent = String.valueOf(buffer);
                             break;
@@ -369,8 +319,7 @@ public class CoreServiceImpl implements CoreService {
             case MessageUtil.REQ_MESSAGE_TYPE_LINK: {
                 respContent = "您发送的是链接消息！";
                 String url = (String) map.get("Url");
-                queryService.getLuckyMenoy(url, "1");
-                textMessage.setContent(respContent);
+                textMessage.setContent(url);
                 // 将文本消息对象转换成xml字符串
                 respMessage = MessageUtil.textMessageToXml(textMessage);
             }
@@ -407,12 +356,9 @@ public class CoreServiceImpl implements CoreService {
             buffer.append("您好，很高兴为您服务：").append("\n");
             buffer.append("1.查询深圳通余额").append("\n");
             buffer.append("2.下班倒计时").append("\n");
-            buffer.append("3.查询天气简版").append("\n");
-            buffer.append("4.查询天气详情").append("\n");
-            buffer.append("5.查询天气预测").append("\n");
-            buffer.append("6.查询今日建议").append("\n");
-            buffer.append("7.通过正则表达式生成符合的字符串").append("\n");
-            buffer.append("8.通过字符串数组反向生成符合的正则表达式").append("\n");
+            buffer.append("3.通过正则表达式生成符合的字符串").append("\n");
+            buffer.append("4.通过字符串数组反向生成符合的正则表达式").append("\n");
+            buffer.append("5.查询商品历史价格").append("\n");
             buffer.append("或者您可以尝试发送表情").append("\n");
         }
         String respContent = String.valueOf(buffer);
@@ -614,6 +560,19 @@ public class CoreServiceImpl implements CoreService {
     }
 
     /**
+     * 是否是查询商品历史价格
+     *
+     * @param s
+     * @return
+     */
+    private boolean isUrls(String s) {
+        if (s.startsWith(URLCODE)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * 返回Reg
      *
      * @return
@@ -647,6 +606,43 @@ public class CoreServiceImpl implements CoreService {
         }
 
 
+        String respContent = String.valueOf(buffer);
+        textMessage.setContent(respContent);
+        return MessageUtil.textMessageToXml(textMessage);
+    }
+
+    /**
+     * 返回商品查询历史
+     *
+     * @return
+     */
+    private String getShoppingPrice(TextMessage textMessage, String s, User user) throws Exception {
+
+        StringBuffer buffer = new StringBuffer();
+        log.info("input:" + s);
+        if (s != null && !"".equals(s)) {
+            int i = s.indexOf(URLCODE);
+            if (i != -1) {
+                s = s.substring(4 + i, s.length());
+                log.info("catch：" + s);
+                user.setUrl(s);
+                try {
+                    userService.updateUrl(user);
+                    buffer.append("设置商品URL成功!");
+                } catch (Exception e) {
+                    buffer.append("设置商品URL失败!");
+                }
+
+
+            } else {
+                buffer.append("URL格式输入有误失败!").append("\n");
+                buffer.append("打开天猫淘宝京东等分享复制链接!").append("\n");
+                buffer.append("发送链接查询商品历史价格!").append("\n");
+                buffer.append("格式如下: ").append("\n");
+                buffer.append("url|链接URL").append("\n");
+                buffer.append("url|http://yukhj.com/s/JvuZR?tm=9eb3bd").append("\n");
+            }
+        }
         String respContent = String.valueOf(buffer);
         textMessage.setContent(respContent);
         return MessageUtil.textMessageToXml(textMessage);

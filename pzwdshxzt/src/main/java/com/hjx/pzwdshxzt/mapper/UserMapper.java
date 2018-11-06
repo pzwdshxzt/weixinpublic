@@ -29,7 +29,8 @@ public interface UserMapper {
     @Select("select * from t_user where open_id = #{openId}")
     @Results({@Result(property = "openId", column = "open_id"),
             @Result(property = "sztNum", column = "szt_num"),
-            @Result(property = "endTime", column = "end_time")
+            @Result(property = "endTime", column = "end_time"),
+            @Result(property = "url", column = "url")
     })
     List<User> selectByPrimaryKey(String openId);
 
@@ -56,6 +57,14 @@ public interface UserMapper {
      */
     @Update("update t_user set local= #{local},address = #{address} where open_id = #{openId}")
     void updateLocal(User user);
+
+    /**
+     * 修改URL
+     *
+     * @param user
+     */
+    @Update("update t_user set url= #{url} where open_id = #{openId}")
+    void updateUrl(User user);
 
 
 

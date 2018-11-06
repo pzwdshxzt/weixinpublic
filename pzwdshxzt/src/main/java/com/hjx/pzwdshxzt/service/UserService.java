@@ -55,4 +55,9 @@ public interface UserService {
      */
     void updateLocal(User user);
 
+    /**
+     * 修改地理位置
+     */
+    void updateUrl(User user);
+
 }

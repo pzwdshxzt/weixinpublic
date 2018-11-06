@@ -1,5 +1,7 @@
 package com.hjx.pzwdshxzt.service;
 
+import com.hjx.pzwdshxzt.model.price.PriceResult;
+
 /**
  * Description
  * 查询工具
@@ -17,11 +19,11 @@ public interface QueryService {
      */
     String queryBanlance(String cardno) throws Exception;
 
+
     /**
-     * 点击红包
-     * @param phone
+     * 根据商品地址获取
      * @param url
      * @return
      */
-    String getLuckyMenoy(String url,String phone) throws Exception;
+    PriceResult getShoppingPrice(String url) throws Exception ;
 }

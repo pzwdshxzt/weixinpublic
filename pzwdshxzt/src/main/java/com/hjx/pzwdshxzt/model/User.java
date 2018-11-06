@@ -1,5 +1,9 @@
 package com.hjx.pzwdshxzt.model;
 
+/**
+ * @author Dwxqnswxl
+ *
+ */
 public class User {
     private String openId;
 
@@ -13,6 +17,15 @@ public class User {
      * 当前地理位置
      */
     private String address;
+    private String url;
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
     public String getAddress() {
         return address;

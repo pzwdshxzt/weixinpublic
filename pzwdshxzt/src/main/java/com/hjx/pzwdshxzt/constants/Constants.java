@@ -27,6 +27,7 @@ public class Constants {
     public static final String LOCALCODE = "@local:";
     public static final String REGCODE = "reg|";
     public static final String REGSCODE = "regs|";
+    public static final String URLCODE = "url|";
 
 
 

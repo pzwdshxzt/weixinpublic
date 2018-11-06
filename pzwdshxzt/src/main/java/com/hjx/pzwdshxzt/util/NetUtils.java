@@ -262,7 +262,7 @@ public class NetUtils {
             httpConnection = createConnection(address, method,
                     headerParameters, body);
 
-            String encoding = "UTF-8";
+            String encoding = "gbk";
             if (httpConnection.getContentType() != null
                     && httpConnection.getContentType().indexOf("charset=") >= 0) {
                 encoding = httpConnection.getContentType()
