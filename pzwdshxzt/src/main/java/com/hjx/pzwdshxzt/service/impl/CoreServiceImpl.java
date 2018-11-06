@@ -218,12 +218,19 @@ public class CoreServiceImpl implements CoreService {
                                         buffer.append(single.getTitle()).append("\n");
                                         buffer.append("商品历史最低价为:" + single.getLowerPrice()).append("\n");
                                         buffer.append("当前价格为:" + single.getSpmoney()).append("\n");
+                                        int length = buffer.toString().getBytes("UTF-8").length;
                                         String list = single.getJiagequshi();
-                                        list = list.replaceAll("\\[Date.UTC\\(", "○");
-                                        list = list.replaceAll("\\),", "\t￥");
-                                        String[] split = list.split("\\],");
+                                        list = list.replaceAll("\\[Date.UTC\\(", "");
+                                        list = list.replaceAll("\\),", "￥");
+                                        list = list.replaceAll(",", ".");
+                                        String[] split = list.split("\\].");
+                                        Collections.reverse(Arrays.asList(split));
                                         for (String s : split) {
-                                            buffer.append(s.replaceAll(",", ".")).append("\n");
+                                            if (buffer.length() < (1024 - length)) {
+                                                buffer.append("○" + s).append("\n");
+                                            } else {
+                                                break;
+                                            }
                                         }
                                         respContent = buffer.toString();
 
@@ -247,14 +254,14 @@ public class CoreServiceImpl implements CoreService {
                                         Single single = priceResult.getSingle();
                                         StringBuffer buffer = new StringBuffer();
                                         List<Shop> bj = single.getBj();
-                                        if (bj !=null && bj.size()>0){
+                                        if (bj != null && bj.size() > 0) {
                                             for (Shop shop : bj) {
                                                 buffer.append(shop.getSitename()).append("\n");
                                                 buffer.append(shop.getTitle()).append("\n");
-                                                buffer.append("Price: ￥"+shop.getPrice()).append("\n");
-                                                buffer.append("Url:"+shop.getUrl()).append("\n");
+                                                buffer.append("Price: ￥" + shop.getPrice()).append("\n");
+                                                buffer.append("Url:" + shop.getUrl()).append("\n");
                                             }
-                                        }else{
+                                        } else {
                                             buffer.append("暂无其他商家信息.").append("\n");
                                         }
 
