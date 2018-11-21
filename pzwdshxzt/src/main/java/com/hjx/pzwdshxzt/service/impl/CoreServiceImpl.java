@@ -164,8 +164,12 @@ public class CoreServiceImpl implements CoreService {
                 if (isRegs(content)) {
                     return regexGen(textMessage, content);
                 }
+
                 if (isUrls(content)) {
-                    return getShoppingPrice(textMessage, content, user);
+                    return getShoppingPrice(textMessage, content, user ,true);
+                }
+                if (content.startsWith("http")|content.startsWith("https")) {
+                    return getShoppingPrice(textMessage, content, user,false);
                 }
 
                 /**
@@ -240,7 +244,7 @@ public class CoreServiceImpl implements CoreService {
                                 }
                             } else {
                                 respContent = "您还未设置商品URL \n打开天猫淘宝京东等分享复制链接 \n" +
-                                        "发送链接查询商品历史价格\n 格式如下: \nurl|淘宝链接URL";
+                                        "发送链接查询商品历史价格\n 格式如下: \n链接URL \n url|链接URL\"";
                             }
 
                             break;
@@ -623,33 +627,34 @@ public class CoreServiceImpl implements CoreService {
      *
      * @return
      */
-    private String getShoppingPrice(TextMessage textMessage, String s, User user) throws Exception {
+    private String getShoppingPrice(TextMessage textMessage, String s, User user, boolean isUrls) {
 
         StringBuffer buffer = new StringBuffer();
         log.info("input:" + s);
-        if (s != null && !"".equals(s)) {
+        /** 是否需要分割 */
+        if (isUrls) {
             int i = s.indexOf(URLCODE);
             if (i != -1) {
                 s = s.substring(4 + i, s.length());
-                log.info("catch：" + s);
-                user.setUrl(s);
-                try {
-                    userService.updateUrl(user);
-                    buffer.append("设置商品URL成功!");
-                } catch (Exception e) {
-                    buffer.append("设置商品URL失败!");
-                }
-
-
             } else {
-                buffer.append("URL格式输入有误失败!").append("\n");
-                buffer.append("打开天猫淘宝京东等分享复制链接!").append("\n");
-                buffer.append("发送链接查询商品历史价格!").append("\n");
-                buffer.append("格式如下: ").append("\n");
-                buffer.append("url|链接URL").append("\n");
-                buffer.append("url|http://yukhj.com/s/JvuZR?tm=9eb3bd").append("\n");
+                s = "";
             }
         }
+
+        if (!"".equals(s)){
+            user.setUrl(s);
+            userService.updateUrl(user);
+            buffer.append("设置商品URL成功!");
+
+        }else{
+            buffer.append("URL格式输入有误失败!").append("\n");
+            buffer.append("打开天猫淘宝京东等分享复制链接!").append("\n");
+            buffer.append("发送链接查询商品历史价格!").append("\n");
+            buffer.append("格式如下: ").append("\n");
+            buffer.append("链接URL 或者").append("\n");
+            buffer.append("url|http://yukhj.com/s/JvuZR?tm=9eb3bd").append("\n");
+        }
+
         String respContent = String.valueOf(buffer);
         textMessage.setContent(respContent);
         return MessageUtil.textMessageToXml(textMessage);
