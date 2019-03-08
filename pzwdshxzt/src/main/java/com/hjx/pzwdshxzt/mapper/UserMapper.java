@@ -17,7 +17,7 @@ public interface UserMapper {
      * @param user
      * @return
      */
-    @Insert("insert into t_user (open_id,szt_num ) values(#{openId},#{sztNum})")
+    @Insert("insert into t_user (open_id,szt_num ) values(#{openId},#{sztNum})" )
     void insert(User user);
 
     /**
@@ -26,11 +26,11 @@ public interface UserMapper {
      * @param openId
      * @return
      */
-    @Select("select * from t_user where open_id = #{openId}")
-    @Results({@Result(property = "openId", column = "open_id"),
-            @Result(property = "sztNum", column = "szt_num"),
-            @Result(property = "endTime", column = "end_time"),
-            @Result(property = "url", column = "url")
+    @Select("select * from t_user where open_id = #{openId}" )
+    @Results({@Result(property = "openId", column = "open_id" ),
+            @Result(property = "sztNum", column = "szt_num" ),
+            @Result(property = "endTime", column = "end_time" ),
+            @Result(property = "url", column = "url" )
     })
     List<User> selectByPrimaryKey(String openId);
 
@@ -39,7 +39,7 @@ public interface UserMapper {
      *
      * @param user
      */
-    @Update("update t_user set szt_num = #{sztNum} where open_id = #{openId}")
+    @Update("update t_user set szt_num = #{sztNum} where open_id = #{openId}" )
     void updateSZT(User user);
 
     /**
@@ -47,7 +47,7 @@ public interface UserMapper {
      *
      * @param user
      */
-    @Update("update t_user set end_time = #{endTime} where open_id = #{openId}")
+    @Update("update t_user set end_time = #{endTime} where open_id = #{openId}" )
     void updateEndTime(User user);
 
     /**
@@ -55,7 +55,7 @@ public interface UserMapper {
      *
      * @param user
      */
-    @Update("update t_user set local= #{local},address = #{address} where open_id = #{openId}")
+    @Update("update t_user set local= #{local},address = #{address} where open_id = #{openId}" )
     void updateLocal(User user);
 
     /**
@@ -63,9 +63,8 @@ public interface UserMapper {
      *
      * @param user
      */
-    @Update("update t_user set url= #{url} where open_id = #{openId}")
+    @Update("update t_user set url= #{url} where open_id = #{openId}" )
     void updateUrl(User user);
-
 
 
 }

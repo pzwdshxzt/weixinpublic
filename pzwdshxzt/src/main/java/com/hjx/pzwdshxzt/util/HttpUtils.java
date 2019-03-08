@@ -1,389 +1,161 @@
 package com.hjx.pzwdshxzt.util;
 
-import java.io.*;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.hjx.pzwdshxzt.constants.Constants;
+import com.hjx.pzwdshxzt.model.price.PriceResult;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
+
+import javax.net.ssl.*;
+import java.io.IOException;
+import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.security.KeyManagementException;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.time.Duration;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import com.hjx.pzwdshxzt.service.InitService;
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.CookieStore;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.*;
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.*;
-import org.apache.http.impl.cookie.BasicClientCookie;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
-import org.springframework.util.ResourceUtils;
-
+import static com.hjx.pzwdshxzt.util.HtmlParser.getErrorMsg;
+import static com.hjx.pzwdshxzt.util.HtmlParser.getSZTBanlance;
 
 /**
- * Description
  * http
  *
  * @Author : huangjinxing
  * @Email : hmm7023@gmail.com
- * @Date : 2018/8/7 16:06
+ * @Date : 2019/3/8 16:06
  * @Version :
  */
 public class HttpUtils {
 
 
-    /**
-     * get
-     *
-     * @param host
-     * @param path
-     * @param headers
-     * @param querys
-     * @return
-     * @throws Exception
-     */
-    public static String doGet(String host, String path,
-                               Map<String, String> headers,
-                               Map<String, String> querys)
-            throws Exception {
-        ;
-        CookieStore cookieStore = new BasicCookieStore();
-        BasicClientCookie cookie = new BasicClientCookie("JSESSIONID", (String) InitService.maps.get("cookie"));
-        cookie.setVersion(0);
-        cookie.setDomain("query.shenzhentong.com");
-        cookie.setPath("/sztnet");
-        cookieStore.addCookie(cookie);
-        CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
-        HttpGet request = new HttpGet(buildUrl(host, path, querys));
-        for (Map.Entry<String, String> e : headers.entrySet()) {
-            request.addHeader(e.getKey(), e.getValue());
+    public static void testHttpClient() throws IOException, InterruptedException {
+        //1.set connect timeout
+        HttpClient client = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofMillis(5000))
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build();
+
+        //2.set read timeout
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://openjdk.java.net/"))
+                .timeout(Duration.ofMillis(5009))
+                .build();
+
+        HttpResponse<String> response =
+                client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        System.out.println(response.body());
+    }
+
+    public static void main(String[] args) throws IOException, InterruptedException, KeyManagementException, NoSuchAlgorithmException {
+//        HttpUtils.testHttpClient();
+//        testSzt();
+        testUrl();
+    }
+
+    public static void testSzt() throws IOException, InterruptedException {
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://query.shenzhentong.com:8080/sztnet/qryCard.do"))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Accept-Language", "en-US,en;q=0.9")
+                .header("Accept-Encoding", "gzip, deflate")
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
+                .POST(HttpRequest.BodyPublishers.ofString("cardno=686797062"))
+                .build();
+
+        HttpResponse<String> response =
+                client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        String html = response.body();
+        if (html != null && !"".equals(html)) {
+            String sztBanlance = getSZTBanlance(html);
+            if (Constants.SUCCESSCODE1.equals(sztBanlance)) {
+                sztBanlance = getErrorMsg(html);
+
+            }
+            System.out.println(sztBanlance);
         }
 
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(15000).setConnectionRequestTimeout(11000)
-                .setSocketTimeout(15000).build();
-        request.setConfig(requestConfig);
+    }
 
-        HttpEntity httpEntity = client.execute(request).getEntity();
-        List<Cookie> cookies = cookieStore.getCookies();
-        if (cookies.size() > 0) {
-            for (Cookie cook : cookies) {
-                if (cook.getName().equals("JSESSIONID")&&! cook.isSecure()) {
-                    InitService.maps.put("cookie",cookie.getValue());
-                }
+
+    public static void testUrl() throws IOException, InterruptedException, NoSuchAlgorithmException, KeyManagementException {
+
+        TrustManager[] trustAllCertificates = new TrustManager[] { new X509TrustManager() {
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+            @Override
+            public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                // TODO Auto-generated method stub
+            }
+            @Override
+            public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+                // TODO Auto-generated method stub
+            }
+        } };
+
+
+//        HostnameVerifier trustAllHostnames = new HostnameVerifier() {
+//        	@Override
+//        	public boolean verify(String hostname, SSLSession session) {
+//        		return true; // Just allow them all.
+//        	}
+//         };
+
+        int timeoutInSeconds = 60;
+        SSLParameters sslParams = new SSLParameters();
+        sslParams.setEndpointIdentificationAlgorithm("");
+        SSLContext sc = SSLContext.getInstance("SSL");
+        //取消主机名验证
+        System.setProperty("jdk.internal.httpclient.disableHostnameVerification","true");
+        sc.init(null, trustAllCertificates, new SecureRandom());
+
+        String url = "http://m.qobez.top/h.3kyM6OC";
+        String requestUrl = "https://apapia.manmanbuy.com/ChromeWidgetServices/WidgetServices.ashxp_url=?p_url=" +  URLEncoder.encode(url, "utf-8" ) + "&jsoncallback=&methodName=getBiJiaInfo_wxsmall&jgzspic=no";
+
+        HttpClient client = HttpClient.newBuilder()
+                .sslContext(sc)
+                .sslParameters(sslParams).build();
+        HttpRequest request = HttpRequest.newBuilder().timeout(Duration.ofMillis(timeoutInSeconds * 1000))
+                .uri(URI.create(requestUrl))
+//                .header("Connection", "keep-alive")
+                .header("Accept", "*/*")
+                .header("User-Agent", "Shortcuts/732 CFNetwork/975.0.3 Darwin/18.2.0")
+//                .POST(HttpRequest.BodyPublishers.ofString("p_url=" +  URLEncoder.encode(url, "utf-8" ) + "&jsoncallback=&methodName=getBiJiaInfo_wxsmall&jgzspic=no"))
+                .build();
+
+
+        HttpResponse<String> response =
+                client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        String html = response.body();
+        if (html != null && !"".equals(html)) {
+            JSONObject jsonObject = JSON.parseObject(html);
+            try {
+                PriceResult priceResult = jsonObject.toJavaObject(PriceResult.class);
+                System.out.println(priceResult.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        String html = EntityUtils.toString(httpEntity, "UTF-8");
-        client.close();
-        return html;
     }
 
-    /**
-     * get
-     *
-     * @param host
-     * @param headers
-     * @param querys
-     * @return
-     * @throws Exception
-     */
-    public static String doGetLuckyMenoy(String host,
-                               Map<String, String> headers,
-                               Map<String, String> querys)
-            throws Exception {
-        ;
-        CookieStore cookieStore = new BasicCookieStore();
-        CloseableHttpClient client = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
-        HttpGet request = new HttpGet(buildUrl(host, "  ", querys));
-        for (Map.Entry<String, String> e : headers.entrySet()) {
-            request.addHeader(e.getKey(), e.getValue());
-        }
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(15000).setConnectionRequestTimeout(11000)
-                .setSocketTimeout(15000).build();
-        request.setConfig(requestConfig);
-        HttpEntity httpEntity = client.execute(request).getEntity();
-        String html = EntityUtils.toString(httpEntity, "UTF-8");
-        client.close();
-        return html;
-    }
-
-
-    /**
-     * post form
-     *
-     * @param host
-     * @param path
-     * @param method
-     * @param headers
-     * @param querys
-     * @param bodys
-     * @return
-     * @throws Exception
-     */
-    public static HttpResponse doPost(String host, String path, String method,
-                                      Map<String, String> headers,
-                                      Map<String, String> querys,
-                                      Map<String, String> bodys)
-            throws Exception {
-        HttpClient httpClient = wrapClient(host);
-
-        HttpPost request = new HttpPost(buildUrl(host, path, querys));
-        for (Map.Entry<String, String> e : headers.entrySet()) {
-            request.addHeader(e.getKey(), e.getValue());
-        }
-
-        if (bodys != null) {
-            List<NameValuePair> nameValuePairList = new ArrayList<NameValuePair>();
-
-            for (String key : bodys.keySet()) {
-                nameValuePairList.add(new BasicNameValuePair(key, bodys.get(key)));
-            }
-            UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(nameValuePairList, "utf-8");
-            formEntity.setContentType("application/x-www-form-urlencoded; charset=UTF-8");
-            request.setEntity(formEntity);
-        }
-
-        return httpClient.execute(request);
-    }
-
-    /**
-     * Post String
-     *
-     * @param host
-     * @param path
-     * @param method
-     * @param headers
-     * @param querys
-     * @param body
-     * @return
-     * @throws Exception
-     */
-    public static HttpResponse doPost(String host, String path, String method,
-                                      Map<String, String> headers,
-                                      Map<String, String> querys,
-                                      String body)
-            throws Exception {
-        HttpClient httpClient = wrapClient(host);
-
-        HttpPost request = new HttpPost(buildUrl(host, path, querys));
-        for (Map.Entry<String, String> e : headers.entrySet()) {
-            request.addHeader(e.getKey(), e.getValue());
-        }
-
-        if (StringUtils.isNotBlank(body)) {
-            request.setEntity(new StringEntity(body, "utf-8"));
-        }
-
-        return httpClient.execute(request);
-    }
-
-    /**
-     * Post stream
-     *
-     * @param host
-     * @param path
-     * @param method
-     * @param headers
-     * @param querys
-     * @param body
-     * @return
-     * @throws Exception
-     */
-    public static HttpResponse doPost(String host, String path, String method,
-                                      Map<String, String> headers,
-                                      Map<String, String> querys,
-                                      byte[] body)
-            throws Exception {
-        HttpClient httpClient = wrapClient(host);
-
-        HttpPost request = new HttpPost(buildUrl(host, path, querys));
-        for (Map.Entry<String, String> e : headers.entrySet()) {
-            request.addHeader(e.getKey(), e.getValue());
-        }
-
-        if (body != null) {
-            request.setEntity(new ByteArrayEntity(body));
-        }
-
-        return httpClient.execute(request);
-    }
-
-    /**
-     * Put String
-     *
-     * @param host
-     * @param path
-     * @param method
-     * @param headers
-     * @param querys
-     * @param body
-     * @return
-     * @throws Exception
-     */
-    public static HttpResponse doPut(String host, String path, String method,
-                                     Map<String, String> headers,
-                                     Map<String, String> querys,
-                                     String body)
-            throws Exception {
-        HttpClient httpClient = wrapClient(host);
-
-        HttpPut request = new HttpPut(buildUrl(host, path, querys));
-        for (Map.Entry<String, String> e : headers.entrySet()) {
-            request.addHeader(e.getKey(), e.getValue());
-        }
-
-        if (StringUtils.isNotBlank(body)) {
-            request.setEntity(new StringEntity(body, "utf-8"));
-        }
-
-        return httpClient.execute(request);
-    }
-
-    /**
-     * Put stream
-     *
-     * @param host
-     * @param path
-     * @param method
-     * @param headers
-     * @param querys
-     * @param body
-     * @return
-     * @throws Exception
-     */
-    public static HttpResponse doPut(String host, String path, String method,
-                                     Map<String, String> headers,
-                                     Map<String, String> querys,
-                                     byte[] body)
-            throws Exception {
-        HttpClient httpClient = wrapClient(host);
-
-        HttpPut request = new HttpPut(buildUrl(host, path, querys));
-        for (Map.Entry<String, String> e : headers.entrySet()) {
-            request.addHeader(e.getKey(), e.getValue());
-        }
-
-        if (body != null) {
-            request.setEntity(new ByteArrayEntity(body));
-        }
-
-        return httpClient.execute(request);
-    }
-
-    /**
-     * Delete
-     *
-     * @param host
-     * @param path
-     * @param method
-     * @param headers
-     * @param querys
-     * @return
-     * @throws Exception
-     */
-    public static HttpResponse doDelete(String host, String path, String method,
-                                        Map<String, String> headers,
-                                        Map<String, String> querys)
-            throws Exception {
-        HttpClient httpClient = wrapClient(host);
-
-        HttpDelete request = new HttpDelete(buildUrl(host, path, querys));
-        for (Map.Entry<String, String> e : headers.entrySet()) {
-            request.addHeader(e.getKey(), e.getValue());
-        }
-
-        return httpClient.execute(request);
-    }
-
-    private static String buildUrl(String host, String path, Map<String, String> querys) throws UnsupportedEncodingException {
-        StringBuilder sbUrl = new StringBuilder();
-        sbUrl.append(host);
-        if (!StringUtils.isBlank(path)) {
-            sbUrl.append(path);
-        }
-        if (null != querys) {
-            StringBuilder sbQuery = new StringBuilder();
-            for (Map.Entry<String, String> query : querys.entrySet()) {
-                if (0 < sbQuery.length()) {
-                    sbQuery.append("&");
-                }
-                if (StringUtils.isBlank(query.getKey()) && !StringUtils.isBlank(query.getValue())) {
-                    sbQuery.append(query.getValue());
-                }
-                if (!StringUtils.isBlank(query.getKey())) {
-                    sbQuery.append(query.getKey());
-                    if (!StringUtils.isBlank(query.getValue())) {
-                        sbQuery.append("=");
-                        sbQuery.append(URLEncoder.encode(query.getValue(), "utf-8"));
-                    }
-                }
-            }
-            if (0 < sbQuery.length()) {
-                sbUrl.append("?").append(sbQuery);
-            }
-        }
-
-        return sbUrl.toString();
-    }
-
-    private static HttpClient wrapClient(String host) {
-        HttpClient httpClient = new DefaultHttpClient();
-        if (host.startsWith("https://")) {
-            sslClient(httpClient);
-        }
-
-        return httpClient;
-    }
-
-    private static void sslClient(HttpClient httpClient) {
-        try {
-            SSLContext ctx = SSLContext.getInstance("TLS");
-            X509TrustManager tm = new X509TrustManager() {
-                @Override
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-
-                @Override
-                public void checkClientTrusted(X509Certificate[] xcs, String str) {
-
-                }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] xcs, String str) {
-
-                }
-            };
-            ctx.init(null, new TrustManager[]{tm}, null);
-            SSLSocketFactory ssf = new SSLSocketFactory(ctx);
-            ssf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-            ClientConnectionManager ccm = httpClient.getConnectionManager();
-            SchemeRegistry registry = ccm.getSchemeRegistry();
-            registry.register(new Scheme("https", 443, ssf));
-        } catch (KeyManagementException ex) {
-            throw new RuntimeException(ex);
-        } catch (NoSuchAlgorithmException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
 }
 

@@ -75,7 +75,7 @@ public class MessageUtil {
     /**
      * 事件类型：已关注群体扫描二维码
      */
-    public static final String EVENT_TYPE_SCAN="SCAN";
+    public static final String EVENT_TYPE_SCAN = "SCAN";
     /**
      * 事件类型：unsubscribe(取消订阅)
      */
@@ -103,7 +103,7 @@ public class MessageUtil {
      * @return
      * @throws Exception
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked" )
     /**
      *  屏蔽某些编译时的警告信息(在强制类型转换的时候编译器会给出警告)
      */
@@ -144,8 +144,6 @@ public class MessageUtil {
     }
 
 
-
-
     /**
      * 扩展xstream，使其支持CDATA块
      *
@@ -158,17 +156,18 @@ public class MessageUtil {
                 // 对所有xml节点的转换都增加CDATA标记
                 boolean cdata = true;
 
-                @SuppressWarnings("unchecked")
+                @SuppressWarnings("unchecked" )
                 @Override
                 public void startNode(String name, Class clazz) {
                     super.startNode(name, clazz);
                 }
+
                 @Override
                 protected void writeText(QuickWriter writer, String text) {
                     if (cdata) {
-                        writer.write("<![CDATA[");
+                        writer.write("<![CDATA[" );
                         writer.write(text);
-                        writer.write("]]>");
+                        writer.write("]]>" );
                     } else {
                         writer.write(text);
                     }

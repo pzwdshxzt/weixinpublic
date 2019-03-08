@@ -11,8 +11,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -23,9 +21,8 @@ import java.util.regex.Pattern;
  * @Date : 2018/11/9 10:13
  * @Version :
  */
-@Service("lotteryService")
+@Service("lotteryService" )
 public class LotteryServiceImpl implements LotteryService {
-
 
 
     @Autowired
@@ -42,8 +39,8 @@ public class LotteryServiceImpl implements LotteryService {
         Integer i = Integer.parseInt(num);
 
         List<Map<String, String>> maps = lotteryMapper.queryCheckList(token, i.toString());
-        if (maps != null && maps.size()>0){
-            return maps.get(0).get("title") + " \n 你已经兑奖过了 : \n " + maps.get(0).get("rule");
+        if (maps != null && maps.size() > 0) {
+            return maps.get(0).get("title" ) + " \n 你已经兑奖过了 : \n " + maps.get(0).get("rule" );
         }
 
         List<Lottery> lists = (List<Lottery>) InitService.results.get(token);
@@ -57,13 +54,13 @@ public class LotteryServiceImpl implements LotteryService {
         if (lists != null && lists.size() > 0) {
 
             for (Lottery lottery : lists) {
-                String[] split = lottery.getResults().split(" ");
+                String[] split = lottery.getResults().split(" " );
 
                 boolean isLucky = false;
                 for (String s : split) {
                     if (s != null && !"".equals(s) && i.equals(Integer.parseInt(s))) {
                         isLucky = true;
-                        lotteryMapper.insertCheck(token,i.toString(),lottery.getRule(),new Date().toString(),lottery.getTime(),lottery.getTitle());
+                        lotteryMapper.insertCheck(token, i.toString(), lottery.getRule(), new Date().toString(), lottery.getTime(), lottery.getTitle());
                         break;
                     }
                 }
@@ -82,7 +79,7 @@ public class LotteryServiceImpl implements LotteryService {
         if (lists != null && lists.size() > 0) {
             HashMap<String, String> maps = new HashMap<>();
             for (Map<String, String> o : lists) {
-                maps.put(o.get("token"), o.get("time"));
+                maps.put(o.get("token" ), o.get("time" ));
             }
             return maps;
         }

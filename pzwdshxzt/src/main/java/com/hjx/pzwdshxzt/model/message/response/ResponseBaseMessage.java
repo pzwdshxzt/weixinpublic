@@ -6,8 +6,8 @@ package com.hjx.pzwdshxzt.model.message.response;
 public class ResponseBaseMessage {
 
     /**
-     *  接收方帐号（收到的OpenID）
-      */
+     * 接收方帐号（收到的OpenID）
+     */
 
     private String ToUserName;
     /**
@@ -19,7 +19,7 @@ public class ResponseBaseMessage {
      */
     private long CreateTime;
     /**
-     *  消息类型（text/music/news）
+     * 消息类型（text/music/news）
      */
     private String MsgType;
     /**

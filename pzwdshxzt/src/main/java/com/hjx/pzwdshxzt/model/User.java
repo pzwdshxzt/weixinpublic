@@ -2,7 +2,6 @@ package com.hjx.pzwdshxzt.model;
 
 /**
  * @author Dwxqnswxl
- *
  */
 public class User {
     private String openId;

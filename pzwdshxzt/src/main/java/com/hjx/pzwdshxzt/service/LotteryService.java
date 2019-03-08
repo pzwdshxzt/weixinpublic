@@ -33,6 +33,6 @@ public interface LotteryService {
     /**
      * 查询所有Token
      */
-    HashMap<String,String> queryTokenList();
+    HashMap<String, String> queryTokenList();
 
 }

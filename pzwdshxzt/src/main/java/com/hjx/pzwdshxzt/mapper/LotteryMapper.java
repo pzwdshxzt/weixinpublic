@@ -20,7 +20,7 @@ public interface LotteryMapper {
      * @param lottery
      * @return
      */
-    @Insert("insert into t_lottery (title,results,time,rule,token,createTime) values(#{title},#{results},#{time},#{rule},#{token},#{createTime})")
+    @Insert("insert into t_lottery (title,results,time,rule,token,createTime) values(#{title},#{results},#{time},#{rule},#{token},#{createTime})" )
     void insertLottery(Lottery lottery);
 
 
@@ -30,33 +30,36 @@ public interface LotteryMapper {
      * @param token
      * @return
      */
-    @Select("select results,title,time,rule,token from t_lottery where token = #{token}")
-    @Results({@Result(property = "results", column = "results"),
-            @Result(property = "title", column = "title"),
-            @Result(property = "time", column = "time"),
-            @Result(property = "rule", column = "rule"),
-            @Result(property = "token", column = "token")
+    @Select("select results,title,time,rule,token from t_lottery where token = #{token}" )
+    @Results({@Result(property = "results", column = "results" ),
+            @Result(property = "title", column = "title" ),
+            @Result(property = "time", column = "time" ),
+            @Result(property = "rule", column = "rule" ),
+            @Result(property = "token", column = "token" )
     })
     List<Lottery> selectByToken(String token);
 
     /**
      * 查询所有Token
+     *
      * @return
      */
     @Options(statementType = StatementType.CALLABLE)
-    @Select("select token,time from t_lottery GROUP BY token,time")
-    List<Map<String,String>> queryTokenList();
+    @Select("select token,time from t_lottery GROUP BY token,time" )
+    List<Map<String, String>> queryTokenList();
 
 
     /**
      * 查询是否中奖
+     *
      * @return
      */
-    @Select("select token,title,rule from t_check where token = #{token} and num = #{num}")
-    List<Map<String,String>> queryCheckList(@Param("token")String token, @Param("num")String num);
+    @Select("select token,title,rule from t_check where token = #{token} and num = #{num}" )
+    List<Map<String, String>> queryCheckList(@Param("token" ) String token, @Param("num" ) String num);
 
     /**
      * 插入兑奖信息
+     *
      * @param token
      * @param num
      * @param rule
@@ -64,6 +67,6 @@ public interface LotteryMapper {
      * @param time
      * @param title
      */
-    @Insert("insert into t_check (token,num,rule,createTime,time,title) values(#{token},#{num},#{rule},#{createTime},#{time},#{title})")
-    void insertCheck(@Param("token")String token,@Param("num")String num,@Param("rule")String rule,@Param("createTime")String createTime,@Param("time")String time,@Param("title")String title);
+    @Insert("insert into t_check (token,num,rule,createTime,time,title) values(#{token},#{num},#{rule},#{createTime},#{time},#{title})" )
+    void insertCheck(@Param("token" ) String token, @Param("num" ) String num, @Param("rule" ) String rule, @Param("createTime" ) String createTime, @Param("time" ) String time, @Param("title" ) String title);
 }

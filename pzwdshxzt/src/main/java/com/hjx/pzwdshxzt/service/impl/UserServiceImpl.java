@@ -19,7 +19,7 @@ import java.util.List;
  * @Date : 2018/8/6 16:12
  * @Version : 0.0.1
  */
-@Service("userService")
+@Service("userService" )
 public class UserServiceImpl implements UserService {
 
 
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UnSubscribe selectUnSubscribe(String openId) {
         List<UnSubscribe> unSubscribes = unSubscribeMapper.selectUnSubscribe(openId);
-        if (unSubscribes.size()>0){
+        if (unSubscribes.size() > 0) {
             return unSubscribes.get(0);
         }
         return null;

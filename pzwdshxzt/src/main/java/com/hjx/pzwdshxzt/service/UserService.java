@@ -16,12 +16,14 @@ public interface UserService {
 
     /**
      * 新增用户
+     *
      * @param user
      */
     void insertUser(User user);
 
     /**
      * 校验是否存在openId
+     *
      * @param openId
      * @return
      */
@@ -29,11 +31,14 @@ public interface UserService {
 
     /**
      * 修改深圳通卡号
+     *
      * @param user
      */
     void updateNum(User user);
+
     /**
      * 修改倒计时时间
+     *
      * @param user
      */
     void updateEndTime(User user);
@@ -42,14 +47,17 @@ public interface UserService {
      * 新增取消关注用户
      */
     void addUnSubscribe(String openId);
+
     /**
      * 删除取消关注用户
      */
     void deleteUnSubscribe(String openId);
+
     /**
      * 删除取消关注用户
      */
     UnSubscribe selectUnSubscribe(String openId);
+
     /**
      * 修改地理位置
      */

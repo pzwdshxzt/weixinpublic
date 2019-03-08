@@ -1,17 +1,11 @@
 package com.hjx.pzwdshxzt.controller;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.hjx.pzwdshxzt.constants.Constants;
-import com.hjx.pzwdshxzt.mapper.CityMapper;
 import com.hjx.pzwdshxzt.model.Lottery.Lottery;
 import com.hjx.pzwdshxzt.model.R;
-import com.hjx.pzwdshxzt.model.weather.City;
-import com.hjx.pzwdshxzt.model.weather.CityA;
 import com.hjx.pzwdshxzt.service.CoreService;
 import com.hjx.pzwdshxzt.service.InitService;
 import com.hjx.pzwdshxzt.service.LotteryService;
-import com.hjx.pzwdshxzt.util.HttpUtils;
 import com.hjx.pzwdshxzt.util.SignUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,14 +21,12 @@ import java.util.regex.Pattern;
  * @author hjx
  */
 @RestController
-@RequestMapping("")
+@RequestMapping("" )
 public class CoreController {
 
     @Autowired
     private CoreService coreService;
     private static Logger log = LoggerFactory.getLogger(CoreController.class);
-    @Autowired
-    private CityMapper cityMapper;
 
     @Autowired
     private LotteryService lotteryService;
@@ -53,10 +45,10 @@ public class CoreController {
          *  通过检验signature对请求进行校验，若校验成功则原样返回echostr，表示接入成功，否则接入失败
          */
         if (SignUtil.checkSignature(signature, timestamp, nonce)) {
-            log.info("接入成功");
+            log.info("接入成功" );
             return echostr;
         }
-        log.error("接入失败");
+        log.error("接入失败" );
         return "";
     }
 
@@ -92,14 +84,14 @@ public class CoreController {
     public R checkResult(@RequestParam(name = "token", required = false) String token,
                          @RequestParam(name = "num", required = false) String num) {
 
-        if (!isNumeric(num) || "".equals(num) || num == null){
-            return R.error(522, "请输入数字.");
+        if (!isNumeric(num) || "".equals(num) || num == null) {
+            return R.error(522, "请输入数字." );
         }
         if (token == null && "".equals(token)) {
-            return R.error(520, "系统异常，请联系Huangjinxing");
+            return R.error(520, "系统异常，请联系Huangjinxing" );
         }
         if (num == null && "".equals(num)) {
-            return R.error(521, "请输入你的号码");
+            return R.error(521, "请输入你的号码" );
         }
         String s = lotteryService.checkResult(token, num);
         if (s != null && !"".equals(s)) {
@@ -113,9 +105,9 @@ public class CoreController {
      */
     @RequestMapping(value = "/queryTokenList", method = {RequestMethod.GET, RequestMethod.POST})
     public R checkResult() {
-        if (InitService.tokenList.isEmpty()){
+        if (InitService.tokenList.isEmpty()) {
             HashMap<String, String> s = lotteryService.queryTokenList();
-            if (s!=null && s.size()>0){
+            if (s != null && s.size() > 0) {
                 return R.ok().put("data", s);
             }
             return R.ok();
@@ -133,28 +125,6 @@ public class CoreController {
         return respMessage;
     }
 
-    @RequestMapping("getCity")
-    @ResponseBody
-    public String getCity() {
-        Map<String, String> headers = setAppcode();
-        Map<String, String> querys = new HashMap<>();
-        try {
-            String ret = HttpUtils.doGet(Constants.CITYHOST, Constants.CITYPATH, headers, querys);
-
-            JSONObject jsonObject = JSON.parseObject(ret);
-            CityA cityA = jsonObject.toJavaObject(CityA.class);
-            Set<City> cityInfos = cityA.getResult();
-            cityInfos.stream().forEach(o -> {
-                cityMapper.insertCity(o);
-                System.out.println(o.getCity());
-            });
-
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return "success";
-    }
 
     public static Map<String, String> setAppcode() {
         Map<String, String> headers = new HashMap<>();
@@ -164,13 +134,14 @@ public class CoreController {
 
     /**
      * 利用正则表达式判断字符串是否是数字
+     *
      * @param str
      * @return
      */
-    public boolean isNumeric(String str){
+    public boolean isNumeric(String str) {
         Pattern pattern = Pattern.compile(PATTERN_NUM_STR);
         Matcher isNum = pattern.matcher(str);
-        if( !isNum.matches() ){
+        if (!isNum.matches()) {
             return false;
         }
         return true;

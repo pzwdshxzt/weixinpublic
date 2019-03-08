@@ -23,7 +23,7 @@ public class HtmlParser {
      * @return
      */
     public static String getValue(Element e) {
-        return e.attr("value");
+        return e.attr("value" );
     }
 
     /**
@@ -75,7 +75,7 @@ public class HtmlParser {
      * @return
      */
     public static Elements getTR(Element e) {
-        return e.getElementsByTag("tr");
+        return e.getElementsByTag("tr" );
     }
 
     /**
@@ -85,7 +85,7 @@ public class HtmlParser {
      * @return
      */
     public static Elements getTD(Element e) {
-        return e.getElementsByTag("td");
+        return e.getElementsByTag("td" );
     }
 
     /**
@@ -97,9 +97,9 @@ public class HtmlParser {
     public static List<List<String>> getTables(Element table) {
         List<List<String>> data = new ArrayList<>();
 
-        for (Element etr : table.select("tr")) {
+        for (Element etr : table.select("tr" )) {
             List<String> list = new ArrayList<>();
-            for (Element etd : etr.select("td")) {
+            for (Element etd : etr.select("td" )) {
                 String temp = etd.text();
                 //增加一行中的一列
                 list.add(temp);
@@ -118,7 +118,7 @@ public class HtmlParser {
      */
     public static List<String> getDivs(Element div) {
         List<String> list = new ArrayList<>();
-        for (Element etr : div.select("div")) {
+        for (Element etr : div.select("div" )) {
             String temp = etr.text();
             //增加一行中的一列
             list.add(temp);
@@ -159,7 +159,7 @@ public class HtmlParser {
     public static String getSZTBanlance(String html) {
 
         Document doc = Jsoup.parse(html);
-        Element table = doc.select("table").get(1);
+        Element table = doc.select("table" ).get(1);
         List<List<String>> list = getTables(table);
         System.out.println(list.toString());
         return list.get(0).size() > 3 ? list.get(0).get(2) + "\n" + list.get(0).get(3) + "" : Constants.SUCCESSCODE1;
@@ -168,7 +168,7 @@ public class HtmlParser {
     public static String getErrorMsg(String html) {
 
         Document doc = Jsoup.parse(html);
-        Element div = doc.select("div").get(1);
+        Element div = doc.select("div" ).get(1);
         List<String> list = getDivs(div);
         System.out.println(list.toString());
         return list.size() > 1 ? list.size() == 2 ? list.get(1) : list.get(1) : Constants.SUCCESSCODE1;
