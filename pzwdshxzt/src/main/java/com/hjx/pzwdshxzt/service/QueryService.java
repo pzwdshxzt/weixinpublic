@@ -19,4 +19,12 @@ public interface QueryService {
      * @return
      */
     String queryBanlance(String cardno) throws Exception;
+
+    /**
+     * 查询淘宝优惠
+     *
+     * @param cardno
+     * @return
+     */
+    PriceResult queryDiscount(String url) throws Exception;
 }

@@ -38,4 +38,13 @@ public class PriceResult {
     public void setSingle(Single single) {
         this.single = single;
     }
+
+    @Override
+    public String toString() {
+        return "PriceResult{" +
+                "ok=" + ok +
+                ", msg='" + msg + '\'' +
+                ", single=" + single +
+                '}';
+    }
 }

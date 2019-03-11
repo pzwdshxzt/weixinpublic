@@ -128,7 +128,9 @@ public class HttpUtils {
         sc.init(null, trustAllCertificates, new SecureRandom());
 
         String url = "http://m.qobez.top/h.3kyM6OC";
-        String requestUrl = "https://apapia.manmanbuy.com/ChromeWidgetServices/WidgetServices.ashxp_url=?p_url=" +  URLEncoder.encode(url, "utf-8" ) + "&jsoncallback=&methodName=getBiJiaInfo_wxsmall&jgzspic=no";
+//        String requestUrl = "https://apapia.manmanbuy.com/ChromeWidgetServices/WidgetServices.ashxp_url=?p_url=" +  URLEncoder.encode(url, "utf-8" ) + "&jsoncallback=&methodName=getBiJiaInfo_wxsmall&jgzspic=no";
+//        String requestUrl = "https://apapia.manmanbuy.com/ChromeWidgetServices/WidgetServices.ashxp_url=?p_url=http%3A%2F%2Fyukhj.com%2Fs%2FJvuZR%3Ftm%3D9eb3bd&jsoncallback=&methodName=getBiJiaInfo_wxsmall&jgzspic=no";
+        String requestUrl = "https://apapia.manmanbuy.com/ChromeWidgetServices/WidgetServices.ashx?p_url=http%3A%2F%2Fm.qobez.top%2Fh.3kyM6OC&methodName=getBiJiaInfo_wxsmall&jgzspic=no";
 
         HttpClient client = HttpClient.newBuilder()
                 .sslContext(sc)
@@ -136,8 +138,8 @@ public class HttpUtils {
         HttpRequest request = HttpRequest.newBuilder().timeout(Duration.ofMillis(timeoutInSeconds * 1000))
                 .uri(URI.create(requestUrl))
 //                .header("Connection", "keep-alive")
-                .header("Accept", "*/*")
-                .header("User-Agent", "Shortcuts/732 CFNetwork/975.0.3 Darwin/18.2.0")
+//                .header("Accept", "*/*")
+                .header("user-agent", "Shortcuts/732 CFNetwork/975.0.3 Darwin/18.2.0")
 //                .POST(HttpRequest.BodyPublishers.ofString("p_url=" +  URLEncoder.encode(url, "utf-8" ) + "&jsoncallback=&methodName=getBiJiaInfo_wxsmall&jgzspic=no"))
                 .build();
 

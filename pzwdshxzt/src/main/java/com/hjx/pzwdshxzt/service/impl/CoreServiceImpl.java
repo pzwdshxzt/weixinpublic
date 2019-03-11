@@ -29,7 +29,7 @@ import static com.hjx.pzwdshxzt.constants.Constants.*;
 /**
  * @author Dwxqnswxl
  */
-@Service("coreService" )
+@Service("coreService")
 public class CoreServiceImpl implements CoreService {
 
     private static Logger log = LoggerFactory.getLogger(CoreController.class);
@@ -76,7 +76,7 @@ public class CoreServiceImpl implements CoreService {
             log.info(request.toString());
             Map<String, Object> requestMap = MessageUtil.parseXml(request);
             // 发送方帐号（open_id）
-            fromUserName = (String) requestMap.get("FromUserName" );
+            fromUserName = (String) requestMap.get("FromUserName");
 
             User user = null;
             if (fromUserName != null) {
@@ -84,7 +84,7 @@ public class CoreServiceImpl implements CoreService {
                 if (user == null) {
                     user = new User();
                     user.setOpenId(fromUserName);
-                    user.setSztNum("" );
+                    user.setSztNum("");
                     userService.insertUser(user);
                 }
             }
@@ -110,10 +110,10 @@ public class CoreServiceImpl implements CoreService {
     private String execute(Map<String, Object> map) throws Exception {
         String respMessage = "";
         String respContent = "请求处理异常，请稍候尝试！";
-        String fromUserName = (String) map.get("FromUserName" );
-        String toUserName = (String) map.get("ToUserName" );
-        String msgType = (String) map.get("MsgType" );
-        String Event = (String) map.get("Event" );
+        String fromUserName = (String) map.get("FromUserName");
+        String toUserName = (String) map.get("ToUserName");
+        String msgType = (String) map.get("MsgType");
+        String Event = (String) map.get("Event");
 
         TextMessage textMessage = new TextMessage();
         textMessage.setToUserName(fromUserName);
@@ -129,11 +129,11 @@ public class CoreServiceImpl implements CoreService {
             return unsubscribe(textMessage, fromUserName);
         }
 
-        User user = (User) map.get("user" );
+        User user = (User) map.get("user");
 
         switch (msgType) {
             case MessageUtil.REQ_MESSAGE_TYPE_TEXT: {
-                String content = (String) map.get("Content" );
+                String content = (String) map.get("Content");
                 if (isTime(content)) {
                     user.setEndTime(content);
                     return updateEndTime(textMessage, user);
@@ -154,7 +154,6 @@ public class CoreServiceImpl implements CoreService {
                 if (isQqFace(content)) {
                     respContent = content;
                 } else {
-                    String url = user.getUrl();
                     switch (content) {
                         case "1":
                             /**
@@ -177,12 +176,56 @@ public class CoreServiceImpl implements CoreService {
                                 respContent = "你还没设置下班时间，发送 **:**:** 即可设置 ";
                             }
                             break;
+
+
+                        case "3":
+                            String url = user.getUrl();
+                            if (url != null && !"".equals(url)) {
+                                PriceResult priceResult = queryService.queryDiscount(url);
+                                if (priceResult == null) {
+                                    respContent = "查询失败，请稍后再试!";
+                                } else {
+                                    respContent = "查询暂无信息";
+                                    if (priceResult.getOk() == 1) {
+                                        Single single = priceResult.getSingle();
+                                        StringBuffer buffer = new StringBuffer();
+                                        buffer.append(single.getZk_scname()).append("\n");
+                                        buffer.append(single.getTitle()).append("\n");
+                                        buffer.append("商品历史最低价为:" + single.getLowerPrice()).append("\n");
+                                        buffer.append("当前价格为:" + single.getSpmoney()).append("\n");
+                                        int length = buffer.toString().getBytes("UTF-8").length;
+                                        String list = single.getJiagequshi();
+                                        list = list.replaceAll("\\[Date.UTC\\(", "");
+                                        list = list.replaceAll("\\),", "￥");
+                                        list = list.replaceAll(",", ".");
+                                        String[] split = list.split("\\].");
+                                        Collections.reverse(Arrays.asList(split));
+                                        for (String s : split) {
+                                            if (buffer.length() < (1024 - length)) {
+                                                buffer.append("○" + s).append("\n");
+                                            } else {
+                                                break;
+                                            }
+                                        }
+                                        respContent = buffer.toString();
+                                    }
+                                    if (priceResult.getOk() == 0){
+                                        respContent = priceResult.getMsg();
+                                    }
+                                }
+                            } else {
+                                respContent = "您还未设置商品URL \n打开天猫淘宝京东等分享复制链接 \n" +
+                                        "发送链接查询商品历史价格\n 格式如下: \nurl|淘宝链接URL";
+                            }
+
+                            break;
                         default: {
                             StringBuffer buffer = new StringBuffer();
-                            buffer.append("您好，很高兴为您服务：" ).append("\n" );
-                            buffer.append("1.查询深圳通余额" ).append("\n" );
-                            buffer.append("2.下班倒计时" ).append("\n" );
-                            buffer.append("或者您可以尝试发送表情" ).append("\n" );
+                            buffer.append("您好，很高兴为您服务：").append("\n");
+                            buffer.append("1.查询深圳通余额").append("\n");
+                            buffer.append("2.下班倒计时").append("\n");
+                            buffer.append("3.查询历史价格").append("\n");
+                            buffer.append("或者您可以尝试发送表情").append("\n");
                             respContent = String.valueOf(buffer);
                             break;
                         }
@@ -201,7 +244,7 @@ public class CoreServiceImpl implements CoreService {
             break;
             case MessageUtil.REQ_MESSAGE_TYPE_LINK: {
                 respContent = "您发送的是链接消息！";
-                String url = (String) map.get("Url" );
+                String url = (String) map.get("Url");
                 textMessage.setContent(url);
                 // 将文本消息对象转换成xml字符串
                 respMessage = MessageUtil.textMessageToXml(textMessage);
@@ -233,13 +276,14 @@ public class CoreServiceImpl implements CoreService {
         StringBuffer buffer = new StringBuffer();
         if (unSubscribe != null) {
             userService.deleteUnSubscribe(openId);
-            buffer.append("傻屌，还厚着脸皮回来?" ).append("\n" );
-            buffer.append("算了，爸爸原谅你了." );
+            buffer.append("傻屌，还厚着脸皮回来?").append("\n");
+            buffer.append("算了，爸爸原谅你了.");
         } else {
-            buffer.append("您好，很高兴为您服务：" ).append("\n" );
-            buffer.append("1.查询深圳通余额" ).append("\n" );
-            buffer.append("2.下班倒计时" ).append("\n" );
-            buffer.append("或者您可以尝试发送表情" ).append("\n" );
+            buffer.append("您好，很高兴为您服务：").append("\n");
+            buffer.append("1.查询深圳通余额").append("\n");
+            buffer.append("2.下班倒计时").append("\n");
+            buffer.append("3.查询历史价格").append("\n");
+            buffer.append("或者您可以尝试发送表情").append("\n");
         }
         String respContent = String.valueOf(buffer);
         textMessage.setContent(respContent);
@@ -254,7 +298,7 @@ public class CoreServiceImpl implements CoreService {
     private String unsubscribe(TextMessage textMessage, String openId) {
         userService.addUnSubscribe(openId);
         StringBuffer buffer = new StringBuffer();
-        buffer.append(" " );
+        buffer.append(" ");
         String respContent = String.valueOf(buffer);
         textMessage.setContent(respContent);
         return MessageUtil.textMessageToXml(textMessage);
@@ -268,7 +312,7 @@ public class CoreServiceImpl implements CoreService {
     private String updateSZT(TextMessage textMessage, User user) {
         StringBuffer buffer = new StringBuffer();
         userService.updateNum(user);
-        buffer.append("深圳通卡号设置成功!" );
+        buffer.append("深圳通卡号设置成功!");
         textMessage.setContent(String.valueOf(buffer));
         return MessageUtil.textMessageToXml(textMessage);
     }
@@ -281,7 +325,7 @@ public class CoreServiceImpl implements CoreService {
     private String updateEndTime(TextMessage textMessage, User user) {
         StringBuffer buffer = new StringBuffer();
         userService.updateEndTime(user);
-        buffer.append("倒计时设置成功!" );
+        buffer.append("倒计时设置成功!");
         textMessage.setContent(String.valueOf(buffer));
         return MessageUtil.textMessageToXml(textMessage);
     }
@@ -292,10 +336,10 @@ public class CoreServiceImpl implements CoreService {
     }
 
     public String getEndTime(String time) throws ParseException {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss" );
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
         String nowStr = dateFormat.format(new Date());
-        String endStr = nowStr.substring(0, nowStr.indexOf(" " )) + " " + time;
+        String endStr = nowStr.substring(0, nowStr.indexOf(" ")) + " " + time;
         String preStr = "当前时间:" + nowStr + "\n" + "距离您设置的下班时间:\n" + endStr + "\n";
         long l = (dateFormat.parse(endStr).getTime() - dateFormat.parse(nowStr).getTime()) / 1000;
         return l > 0 ? preStr + "还剩下:" + l + "秒" : preStr + "时间已经到了\n 您可以下班了";
@@ -341,9 +385,6 @@ public class CoreServiceImpl implements CoreService {
     }
 
 
-
-
-
     /**
      * 是否是查询商品历史价格
      *
@@ -380,15 +421,15 @@ public class CoreServiceImpl implements CoreService {
         if (!"".equals(s)) {
             user.setUrl(s);
             userService.updateUrl(user);
-            buffer.append("设置商品URL成功!" );
+            buffer.append("设置商品URL成功!");
 
         } else {
-            buffer.append("URL格式输入有误失败!" ).append("\n" );
-            buffer.append("打开天猫淘宝京东等分享复制链接!" ).append("\n" );
-            buffer.append("发送链接查询商品历史价格!" ).append("\n" );
-            buffer.append("格式如下: " ).append("\n" );
-            buffer.append("链接URL 或者" ).append("\n" );
-            buffer.append("url|http://yukhj.com/s/JvuZR?tm=9eb3bd" ).append("\n" );
+            buffer.append("URL格式输入有误失败!").append("\n");
+            buffer.append("打开天猫淘宝京东等分享复制链接!").append("\n");
+            buffer.append("发送链接查询商品历史价格!").append("\n");
+            buffer.append("格式如下: ").append("\n");
+            buffer.append("链接URL 或者").append("\n");
+            buffer.append("url|http://yukhj.com/s/JvuZR?tm=9eb3bd").append("\n");
         }
 
         String respContent = String.valueOf(buffer);
